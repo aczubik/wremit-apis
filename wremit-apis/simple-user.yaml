@@ -1,0 +1,537 @@
+openapi: "3.0.3"
+info:
+  version: 1.0.0
+  title: Simple User API experiment
+  description: User API
+  license:
+    name: WorldRemit
+    url: https://worldremit/licence
+servers:
+  - url: https://worldremit.com/api/users    
+paths:
+  /api/v1/recipients:
+    post:
+      summary: Create new recipient
+      operationId: createRecipient
+      tags:
+        - recipients
+      security:
+        - bearerAuth: [Authorization]    
+      parameters:
+        - $ref: "#/components/headers/x-wr-device-id"
+        - $ref: "#/components/headers/x-wr-platform"
+        - $ref: "#/components/headers/x-wr-platform-version"
+        - $ref: "#/components/headers/x-wr-request-id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecipientPost"
+      responses:
+        201: 
+          description: Created
+          content:
+            application/json:
+              schema:
+                properties:
+                  recipientId:
+                    type: string
+                    format: uuid     
+        401:
+          $ref: "#/components/responses/UnauthorizedError"
+        409:
+          $ref: "#/components/responses/ConflictError"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+  /api/v1/recipients/{userId}:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid    
+    get:
+      summary: Get existing recipient
+      operationId: getRecipientById
+      tags:
+        - recipients
+      security:
+        - bearerAuth: [Authorization]    
+      parameters:
+        - $ref: "#/components/headers/x-wr-platform"
+        - $ref: "#/components/headers/x-wr-platform-version"
+        - $ref: "#/components/headers/x-wr-request-id"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecipientGet"
+    delete:
+      summary: Remove existing user
+      tags:
+        - recipients
+      description: Removes existing recipient.
+      operationId: deleteRecipient
+      security:
+        - bearerAuth: [Authorization]      
+      responses:
+        200:
+          description: Ok
+        401:
+          $ref: "#/components/responses/UnauthorizedError"
+        404:
+          $ref: "#/components/responses/NotFoundError"          
+        500:
+          $ref: "#/components/responses/InternalServerError"                
+  /api/v1/senders:
+    post:
+      summary: Create new user
+      operationId: createUser
+      tags:
+        - senders
+      security:
+        - bearerAuth: [Authorization]    
+      parameters:
+        - $ref: "#/components/headers/x-wr-device-id"
+        - $ref: "#/components/headers/x-wr-platform"
+        - $ref: "#/components/headers/x-wr-platform-version"
+        - $ref: "#/components/headers/x-wr-request-id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SenderPost"
+      responses:
+        201: 
+          description: Created
+          content:
+            application/json:
+              schema:
+                properties:
+                  userId:
+                    type: string
+                    format: uuid     
+                  referenceNumber:
+                    type: string                         
+        401:
+          $ref: "#/components/responses/UnauthorizedError"
+        409:
+          $ref: "#/components/responses/ConflictError"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+  /api/v1/senders/{userId}:
+    parameters:
+      - $ref: "#/components/headers/x-wr-platform"
+      - $ref: "#/components/headers/x-wr-platform-version"
+      - $ref: "#/components/headers/x-wr-request-id"
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get existing user 
+      operationId: getUser
+      tags:
+        - senders
+      security:
+        - bearerAuth: [Authorization]
+      parameters:
+        - name: Content-Type
+          in: header
+          required: true
+          description: Used for content negotiation and versioning
+          schema:
+            type: string
+            enum: [application/vnd.users.getById-request,v1+json]
+        - name: Accept
+          in: header
+          required: true
+          description: Used for content negotiation and versioning
+          schema:
+            type: string
+            enum: [applicationvnd.users.getById-response,v1+json]
+      responses:
+        200:
+          description: OK 
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SenderGet"
+        401:
+          $ref: "#/components/responses/UnauthorizedError"
+        404:
+          $ref: "#/components/responses/NotFoundError"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+    put:
+      summary: Update existing user
+      operationId: updateUser
+      tags:
+        - senders
+      security:
+        - bearerAuth: [Authorization]    
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SenderPost"
+      responses:
+        200: 
+          description: Ok
+        401:
+          $ref: "#/components/responses/UnauthorizedError"
+        409:
+          $ref: "#/components/responses/ConflictError"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      summary: Remove existing user
+      tags:
+        - senders
+      description: |
+        Removes existing user. Should only be done for users that have no transactions.
+      operationId: deleteUser
+      security:
+        - bearerAuth: [Authorization]      
+      responses:
+        200:
+          description: Ok
+        401:
+          $ref: "#/components/responses/UnauthorizedError"
+        404:
+          $ref: "#/components/responses/NotFoundError"          
+        500:
+          $ref: "#/components/responses/InternalServerError"
+        
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: terefere
+  headers:
+    x-wr-platform:
+      required: true
+      schema:
+        type: string
+        enum: [android, ios, web, unknown]
+    x-wr-platform-version:      
+      required: true
+      schema:
+        type: string
+    x-wr-request-id:
+      required: true
+      schema:
+        type: string
+        format: uuid     
+    x-wr-device-id:
+      required: true
+      schema:
+        type: string             
+  responses:
+    UnauthorizedError:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GeneralError"
+    NotFoundError:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GeneralError"            
+    ConflictError:
+      description: Conflict - user already exists (describe how user uniqueness is determined)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GeneralError"
+    InternalServerError:
+      description: Internal Server Error - unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GeneralError"    
+  schemas:
+    GeneralError:
+      description: General Error Schema
+      properties:
+        message:
+          description: Error message. To be used in UI
+          type: string
+        timestamp:
+          description: Error timestamp
+          type: string
+          format: timestamp
+        traceId:
+          description: OpenTracing traceId
+          type: string
+    RecipientPersonalDetails:
+      properties:
+        firstName:
+          type: string
+          description: User first name [BEN_FIRST_NAME]
+        middleName:
+          type: string
+          description: User middle name [BEN_MIDDLE_NAME]
+        lastName:
+          type: string
+          description: User last name [BEN_APELLIDOS]
+        gender:
+          type: string
+          description: Gender [BEN_SEXO]
+    RecipientAddressDetails:
+      properties:
+        addressLine1:
+          type: string
+          description: TODO [BEN_DIRECCION]
+        addressLine2:
+          type: string
+          description: TODO [BEN_DIRECCION_2]
+        addresLine3:
+          type: string
+          description: TODO [BEN_SUBURB]
+        city:
+          type: string
+          description: City [BEN_CIUDAD]
+        postalCode:
+          type: string
+          description: Zip Code [BEN_ZIP]
+        state:
+          type: string
+          description: TODO [BEN_REGION]
+    RecipientContactDetails:
+      properties:
+        email:
+          type: string
+          description: Recipient email [BEN_EMAIL]
+        mobilePhone:
+          type: string
+          description: Recipient mobile phone number [BEN_CELULAR]
+        phoneNumber:
+          type: string
+          description: Recipient landlane phone number [BEN_TELEFONO]
+    RecipientBankAccountDetails:
+      properties:
+        accountNumber:
+          type: string
+          description: Account number [BEN_ACCOUNT]
+        accountType:
+          type: string
+          description: Account type [BEN_TIPO_CUENTA]
+        bankName:
+          type: string
+          description: Bank name [BEN_BANK_NAME]
+        bankCode:
+          type: string
+          description: Bank code [BEN_BANK_CODE]
+        BIC:
+          type: string
+          description: Business Identifier Code / SWIFT [BEN_ACCOUNT_BIC]
+        IBAN:
+          type: string
+          description: International Bank Account Number [BEN_ACCOUNT_IBAN]
+        branchName:
+          type: string
+          description: Bank branch name [BEN_BRANCH_NAME]
+        branchCode:
+          type: string
+          description: Bank branch code [BEN_BRANCH_CODE]
+        cardAccountNumber:
+          type: string
+          description: TODO [???]
+    RecipientMobileAccountDetails:
+      properties:
+        mobileAccount:
+          type: string
+          description: TODO [BEN_MOBILE_ACCOUNT]
+    RecipientIdentificationDetails:
+      properties:
+        identificationId:
+          type: string
+          description: TODO [BEN_IDENTIFICACION]
+        identificationType:
+          type: string
+          description: TODO [BEN_IDTIPO]        
+    RecipientGet:
+      properties:
+        recipientId:
+          type: string
+        personalDetails:
+          $ref: "#/components/schemas/RecipientPersonalDetails"
+        identificationDetails:
+          $ref: "#/components/schemas/RecipientIdentificationDetails"
+        addressDetails:
+          $ref: "#/components/schemas/RecipientAddressDetails"
+        contactDetails:
+          $ref: "#/components/schemas/RecipientContactDetails"
+        bankAccountDetails:
+          $ref: "#/components/schemas/RecipientBankAccountDetails"
+        mobileAccountDetails:
+          $ref: "#/components/schemas/RecipientMobileAccountDetails"
+    RecipientPost:
+      properties:
+        personalDetails:
+          $ref: "#/components/schemas/RecipientPersonalDetails"
+        identificationDetails:
+          $ref: "#/components/schemas/RecipientIdentificationDetails"
+        addressDetails:
+          $ref: "#/components/schemas/RecipientAddressDetails"
+        contactDetails:
+          $ref: "#/components/schemas/RecipientContactDetails"
+        bankAccountDetails:
+          $ref: "#/components/schemas/RecipientBankAccountDetails"
+        mobileAccountDetails:
+          $ref: "#/components/schemas/RecipientMobileAccountDetails"          
+    SenderPersonalDetails:
+      properties:
+        firstName:
+          type: string
+          description: User first name [firstMiddleName, firstName] ??
+        middleName:
+          type: string
+          description: User middle name [middleName]
+        lastName:
+          type: string
+          description: User last name [lastName]
+        email:
+          type: string
+          description: User email. Treated as system login id [REM_EMAIL]
+        dateOfBirth:
+          type: string
+          format: date
+          description: User date of birth [REM_FECHA_NACIMIENTO]
+        gender:
+          type: string
+          enum: [Male, Female]
+          description: User gender [REM_SEXO]
+        nationality:
+          type: string
+          description: User nationality [REM_PAIS_NAC]
+        occupation:
+          type: string
+          description: User occupation
+        countryOfResidence:
+          type: string
+          description: TODO [REM_PAIS_RES]
+    SenderAddressDetails:
+      properties:
+        country:
+          type: string 
+          description: TODO [REM_PAIS]
+        region:
+          type: string
+          description: TODO [REM_REGION, REM_ESTADO]
+        city:
+          type: string
+          description: TODO [REM_CIUDAD]
+        suburb:
+          type: string 
+          description: What would that mean? Internally it is called Town [REM_SUBURB]
+        postalCode:
+          type: string
+          description: Postal Code [REM_ZIP]
+        street:
+          type: string
+          description: Street [REM_DIRECCION2 ?]
+        builing:
+          type: string
+          description: House number [REM_BUILDING]
+        flatUnit:
+          type: string
+          description: TOOD I don't remember logic of building vs flatUnit. Verify.
+    SenderContactDetails:
+      properties:
+        email:
+          type: string
+          description: User email [REM_EMAIL]
+        phoneNumber:
+          type: string
+          description: Land line number [REM_TELEFONO]
+        mobileNumber:
+          type: string
+          description: REMEMBER about the fact that in legacy this is combined with dialCode via PAISES. What do we want to do here? Since in this API we're not changing semantics of old system we should keep it the same. [REM_CELULAR]
+    SenderDocumentDetails:
+      description: There are most likely overlapping properties for the same value for documents. It needs to be verified which ones are used. Without tests I cannot be sure if below I haven't mixed properties from different sets of document fields.
+      properties:
+        type: 
+          type: string
+          description: Document type [REM_IDTIPO] (set of values or just string?)
+        number:
+          type: string
+          description: Document number [REM_IDENTIFICATION, IdIssueNumber]
+        issueDate:
+          type: string
+          format: date
+          description: Document issue data [IdIssueDate]
+        expiryDate:
+          type: string
+          format: date
+          description: Document expiry data [REM_VENCE_DOCUMENTO]
+        issuingCountry:
+          type: string
+          description: Documment issuing country [IdIssuingCountry]
+        driversLicenceState:
+          type: string
+          description: State in which driving license was issued. For DrivingLicence document type. [REM_DL_STATE]
+        comments:
+          type: string
+          description: TODO [REM_COMENTARIO]
+        image:
+          type: object
+          description: Image [REM_FOTO_IMG]
+    SenderGet:
+      properties:
+        userId:
+          type: string
+          format: uuid
+        referenceNumber:
+          type: string
+          description: Human readable user identifier
+        deviceId:
+          type: string
+          description: User device id
+        sourcePlatform:
+          type: string
+          description: Platform on a device user was created from
+          enum: [android, ios, web, unknown]
+        preferredLanguage:
+          type: string
+          description: User preferred UI and communication language
+        referralCode:
+          type: string
+          description: TODO
+        personalDetails:
+          $ref: "#/components/schemas/SenderPersonalDetails"
+        addressDetails:
+          $ref: "#/components/schemas/SenderAddressDetails"
+        contactDetails:
+          $ref: "#/components/schemas/SenderContactDetails"
+        documentDetails:
+          $ref: "#/components/schemas/SenderDocumentDetails"
+    SenderPost:
+      properties:
+        preferredLanguage:
+          type: string
+          description: User preferred UI and communication language
+        referralCode:
+          type: string
+          description: TODO
+        personalDetails:
+          $ref: "#/components/schemas/SenderPersonalDetails"
+        addressDetails:
+          $ref: "#/components/schemas/SenderAddressDetails"
+        contactDetails:
+          $ref: "#/components/schemas/SenderContactDetails"
+        documentDetails:
+          $ref: "#/components/schemas/SenderDocumentDetails"
