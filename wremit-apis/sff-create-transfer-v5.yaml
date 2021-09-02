@@ -64,8 +64,8 @@ paths:
             application/json:
               schema:
                 oneOf:
-                  - $ref: "#/components/schemas/SagaSuccessSchema"
-                  - $ref: "#/components/schemas/SagaFailureSchema"
+                  - $ref: "#/components/schemas/TransferCreationSuccessSchema"
+                  - $ref: "#/components/schemas/TransferCreationFailureSchema"
         202:
           $ref: "#/components/responses/202Response"
         404:
@@ -308,7 +308,7 @@ components:
                     type: string
                   message:
                     type: string
-    SagaFailureSchema:
+    TransferCreationFailureSchema:
       description: In case of success
       required:
         - status
@@ -335,7 +335,7 @@ components:
                   * `500 Internar Server Error`
             body:
               $ref: "#/components/schemas/CommonTrackerErrorSchema"
-    SagaSuccessSchema:
+    TransferCreationSuccessSchema:
       description: In case of failure
       required:
         - status
