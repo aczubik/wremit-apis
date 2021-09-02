@@ -224,7 +224,7 @@ components:
           schema:
             type: string
             description: TODO
-            enum: ["https://submission-flow-facade.wremitdev.com/api/transfer-creation/{transferCreationId}/status"]
+            enum: ["https://submission-flow-facade.wremittst.com/api/transfer-creation/{transferCreationId}/status"]
         Retry-After:
           schema:
             type: integer
