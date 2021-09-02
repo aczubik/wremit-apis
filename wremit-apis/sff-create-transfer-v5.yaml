@@ -52,7 +52,8 @@ paths:
         - name: transferCreationId
           in: path
           description: |
-            Id of a transfer creation process started with POST /api/transfers call
+            Id of a transfer creation process started with POST /api/transfers call.\
+            This value is returned as part of *Location* header returned from POST /api/transfers call.            
           schema:
             type: string
             format: uuid
@@ -73,7 +74,7 @@ paths:
           $ref: "#/components/responses/500ErrorResponse"
   /api/transfers:
     post:
-      summary: Create new transfer
+      summary: Create new transfer [async]
       operationId: createTransfer
       tags:
         - transfers
@@ -204,7 +205,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: Token acquired while authenticating
+      description: Token acquired while authenticating user
   responses:
     202Response:  
       description: Transfer is being created
