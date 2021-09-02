@@ -283,7 +283,9 @@ components:
           description: User last name [BEN_APELLIDOS]
         displayName:
           type: string
-          description: Display name [BEN_NOMBRES]
+          description: | 
+            Display name [BEN_NOMBRES]\
+            **This should most likely not be directly edited but merged from first,middle,last names**
         gender:
           type: string
           description: Gender [BEN_SEXO]
@@ -293,19 +295,20 @@ components:
           description: Date of birth [BEN_FECHA_NACIMIENTO]
         countryOfNationality:
           type: string
+          format: Two letter country code
           description: Country of nationality [BEN_PAIS_NAC]
         occupation:
           type: string
           description: Occupation [BEN_CUPATION]
         image:
           type: string
-          description: Image
+          description: Image [BEN_FOTO_IMG]
         comment:
           type: string
           description: Comment [BEN_REMARK], I have no clue what this field is for
         politicallyExposedPerson:
           type: boolean
-          description: Is a politically exposed person
+          description: Is a politically exposed person [BEN_PEP]
         relationshipWithSender:
           type: string
           description: Relationship with sender [BEN_RELATIONSHIP_WITH_SENDER], not sure if that is some enum or text
@@ -313,16 +316,22 @@ components:
       properties:
         addressLine1:
           type: string
-          description: TODO [BEN_DIRECCION], probably there is a better name for this than addressLinex
+          description: TODO [BEN_DIRECCION], probably there is a better name for this than addressLineX
         addressLine2:
           type: string
-          description: TODO [BEN_DIRECCION_2], probably there is a better name for this than addressLinex
+          description: TODO [BEN_DIRECCION_2], probably there is a better name for this than addressLineX
         addresLine3:
           type: string
-          description: TODO [BEN_SUBURB], probably there is a better name for this than addressLinex
+          description: TODO [BEN_SUBURB], probably there is a better name for this than addressLineX
         country:
           type: string
-          description: Recipient Country [BEN_PAIS_ID, BEN_PAIS] 
+          format: Full name of a country. Not country code.
+          description: Recipient Country [BEN_PAIS] 
+        countryId:
+          type: string
+          description: | 
+            Recipient Country [BEN_PAIS_ID]\
+            **HIDDEN this should be internally written based on country. It needs to be checked how this translation is done because country is not a country code but a full name**
         countryDialCode:
           type: string
           description: TODO [???] There is no separate dial code. It is derived from country! So this should be most likely only in GET.
@@ -332,9 +341,12 @@ components:
         postalCode:
           type: string
           description: Zip Code [BEN_ZIP]
-        state:
+        region:
           type: string
-          description: TODO [BEN_REGION], State/Region not sure if that is the same here
+          description: Region [BEN_REGION]
+        stateId:
+          type: string
+          description: State [BEN_ESTADO_ID]
     RecipientContactDetails:
       properties:
         email:
@@ -342,7 +354,9 @@ components:
           description: Recipient email [BEN_EMAIL]
         mobilePhone:
           type: string
-          description: Recipient mobile phone number [BEN_CELULAR]
+          description: |
+            Recipient mobile phone number [BEN_CELULAR]\
+            **This needs to be validated but I think number here is without a country prefix. This is I think fixed by a recipient country**
         phoneNumber:
           type: string
           description: Recipient landlane phone number [BEN_TELEFONO]
@@ -380,27 +394,32 @@ components:
         mobileAccount:
           type: string
           description: TODO [BEN_MOBILE_ACCOUNT]
-    RecipientIdentificationDetails:
+    RecipientDocumentDetails:
       properties:
-        identificationId:
+        documentId:
           type: string
-          description: TODO [BEN_IDENTIFICACION]
-        identificationType:
+          description: | 
+            TODO [BEN_IDENTIFICACION]\
+            **I am not sure if that really means documentId and if that refers to the same document as documentType**
+        documentType:
           type: string
           description: TODO [BEN_IDTIPO]        
     RecipientGet:
       properties:
         recipientId:
           type: string
+          description: Recipient id [BEN_BENEFICIARIO_ID]
         isActive:
           type: string
-          description: Is active [BEN_ACTIVO], I think this field set to false means recipient is "deleted"
+          description: |
+            Is active [BEN_ACTIVO], I think this field set to false means recipient is "deleted"\
+            **I am not sure this should be directly exposed. Not sure**
         sendingReasonCode:
           $ref: "#/components/schemas/SendingResonSchema"
         personalDetails:
           $ref: "#/components/schemas/RecipientPersonalDetails"
-        identificationDetails:
-          $ref: "#/components/schemas/RecipientIdentificationDetails"
+        documentDetails:
+          $ref: "#/components/schemas/RecipientDocumentDetails"
         addressDetails:
           $ref: "#/components/schemas/RecipientAddressDetails"
         contactDetails:
@@ -413,13 +432,15 @@ components:
       properties:
         isActive:
           type: string
-          description: Is active [BEN_ACTIVO], I think this field set to false means recipient is "deleted"
+          description: |
+            Is active [BEN_ACTIVO], I think this field set to false means recipient is "deleted"\
+            **I am not sure this should be directly exposed. Not sure**
         sendingReasonCode:
           $ref: "#/components/schemas/SendingResonSchema"
         personalDetails:
           $ref: "#/components/schemas/RecipientPersonalDetails"
-        identificationDetails:
-          $ref: "#/components/schemas/RecipientIdentificationDetails"
+        documentDetails:
+          $ref: "#/components/schemas/RecipientDocumentDetails"
         addressDetails:
           $ref: "#/components/schemas/RecipientAddressDetails"
         contactDetails:
