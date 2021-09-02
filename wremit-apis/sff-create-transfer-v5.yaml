@@ -39,16 +39,23 @@ paths:
         - name: X-WR-PLATFORM
           in: header
           required: true
+          description: | 
+            **User header name case as provided.**
           schema:
             $ref: "#/components/schemas/wr-platform-schema"
         - name: X-WR-PlatformVersion
           in: header
           required: false
+          description: |
+            Platform version in format : TODO describe format\
+            **User header name case as provided.**
           schema:
             type: string
         - name: X-WR-RequestId
           in: header
           required: true
+          description: | 
+            **User header name case as provided.**
           schema:
             type: string
       responses:
@@ -62,8 +69,6 @@ paths:
                   - $ref: "#/components/schemas/SagaFailureSchema"
         202:
           $ref: "#/components/responses/202Response"
-        401:
-          $ref: "#/components/responses/401ErrorResponse"
         404:
           $ref: "#/components/responses/404ErrorResponse"
         500:
@@ -100,16 +105,23 @@ paths:
         - name: X-WR-PLATFORM
           in: header
           required: true
+          description: | 
+            **User header name case as provided.**
           schema:
             $ref: "#/components/schemas/wr-platform-schema"
         - name: X-WR-PlatformVersion
           in: header
           required: false
+          description: |
+            Platform version in format : TODO describe format\
+            **User header name case as provided.**
           schema:
             type: string
         - name: X-WR-RequestId
           in: header
           required: true
+          description: | 
+            **User header name case as provided.**
           schema:
             type: string
         - name: X-WR-DeviceID
@@ -188,10 +200,10 @@ paths:
       responses:
         202:
           $ref: "#/components/responses/202Response"
+        400:
+          $ref: "#/components/responses/400ErrorResponse"
         401:
           $ref: "#/components/responses/401ErrorResponse"
-        417:
-          $ref: "#/components/responses/417ErrorResponse"
         422:
           $ref: "#/components/responses/422ErrorResponse"
         500:
@@ -217,6 +229,12 @@ components:
           schema:
             type: integer
             description: delay between next request to tracker endpoint      
+    400ErrorResponse:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CommonErrorSchema"
     401ErrorResponse:
       description: Unauthorized
       content:
@@ -380,6 +398,9 @@ components:
           * `IOS` - iOS
           * `WEB` - Web 
           * `PAR` - no clue
+
+        **User header name case as provided.**
+        
 
 
 
