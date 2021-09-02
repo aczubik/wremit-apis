@@ -22,20 +22,13 @@ paths:
           schema:
             type: string
             format: bearer
-        - name: Content-Type
-          in: header
-          required: true
-          schema:
-            type: string
-            enum:
-              - application/vnd.transfers.submit-status-request.v5+json
         - name: Accept
           in: header
           required: true
           schema:
             type: string
             enum:
-              - application/vnd.transfers.submit-status-response.v5+json
+              - application/vnd.transfers.submit-status.v5+json
         - name: X-WR-PLATFORM
           in: header
           required: true
@@ -95,13 +88,6 @@ paths:
             type: string
             enum:
               - application/vnd.transfers.submit.v5+json
-        - name: Accept
-          in: header
-          required: true
-          schema:
-            type: string
-            enum:
-              - application/vnd.transfers.submitted.v5+json
         - name: X-WR-PLATFORM
           in: header
           required: true
@@ -390,10 +376,9 @@ components:
                   description: Payment session id
     wr-platform-schema:
       type: string
-      enum: [AND, ANDROID, IOS, WEB, PAR]
+      enum: [ANDROID, IOS, WEB, PAR]
       description: >
         Platform types:
-          * `AND` - Android
           * `ANDROID` - Android
           * `IOS` - iOS
           * `WEB` - Web 
