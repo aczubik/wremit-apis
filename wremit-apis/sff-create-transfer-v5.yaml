@@ -382,8 +382,7 @@ components:
           * `ANDROID` - Android
           * `IOS` - iOS
           * `WEB` - Web 
-          * `PAR` - no clue
-
+          * `PAR` - no clue\
         **User header name case as provided.**
         
 
