@@ -32,8 +32,6 @@ paths:
         - name: X-WR-PLATFORM
           in: header
           required: true
-          description: | 
-            **User header name case as provided.**
           schema:
             $ref: "#/components/schemas/wr-platform-schema"
         - name: X-WR-PlatformVersion
@@ -51,6 +49,13 @@ paths:
             **User header name case as provided.**
           schema:
             type: string
+        - name: transferCreationId
+          in: path
+          description: |
+            Id of a transfer creation process started with POST /api/transfers call
+          schema:
+            type: string
+            format: uuid
       responses:
         200:
           description: Transfer creation has finished
@@ -91,8 +96,6 @@ paths:
         - name: X-WR-PLATFORM
           in: header
           required: true
-          description: | 
-            **User header name case as provided.**
           schema:
             $ref: "#/components/schemas/wr-platform-schema"
         - name: X-WR-PlatformVersion
@@ -323,11 +326,12 @@ components:
             httpStatus:
               type: string
               enum: [401,417,422,500]
-              description: |
-                401 Unauthorized\
-                417 Expectation Failed (compliance check rejection)\
-                422 Unprocessable Entity (pricing rejection, coupone code rejection)\
-                500 Internar Server Error
+              description: >
+                Potential error codes:
+                  * `401 Unauthorized`
+                  * `417 Expectation Failed` - (compliance check rejection)
+                  * `422 Unprocessable Entity` - (pricing rejection, coupone code rejection)
+                  * `500 Internar Server Error`
             body:
               $ref: "#/components/schemas/CommonTrackerErrorSchema"
     SagaSuccessSchema:
@@ -382,7 +386,8 @@ components:
           * `ANDROID` - Android
           * `IOS` - iOS
           * `WEB` - Web 
-          * `PAR` - no clue\
+          * `PAR` - Partner API
+
         **User header name case as provided.**
         
 
