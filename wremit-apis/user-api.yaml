@@ -9,15 +9,21 @@ info:
 servers:
   - url: https://worldremit.com/api/users    
 paths:
-  /api/v1/recipients:
+  /api/v1/senders/{senderId}/recipients:
     post:
-      summary: Create new recipient
+      summary: Create new recipient for a specified sender
       operationId: createRecipient
       tags:
         - recipients
       security:
         - bearerAuth: [Authorization]    
       parameters:
+        - name: senderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid    
         - $ref: "#/components/headers/x-wr-device-id"
         - $ref: "#/components/headers/x-wr-platform"
         - $ref: "#/components/headers/x-wr-platform-version"
@@ -44,16 +50,22 @@ paths:
           $ref: "#/components/responses/ConflictError"
         500:
           $ref: "#/components/responses/InternalServerError"
-  /api/v1/recipients/{userId}:
+  /api/v1/senders/{senderId}/recipients/{recipientId}:
     parameters:
-      - name: userId
+      - name: senderId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid    
+      - name: recipientId
         in: path
         required: true
         schema:
           type: string
           format: uuid    
     get:
-      summary: Get existing recipient
+      summary: Get recipient for a specified sender
       operationId: getRecipientById
       tags:
         - recipients
@@ -71,7 +83,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/RecipientGet"
     delete:
-      summary: Remove existing user
+      summary: Remove recipient from a specified sender
       tags:
         - recipients
       description: Removes existing recipient.
@@ -124,19 +136,19 @@ paths:
           $ref: "#/components/responses/ConflictError"
         500:
           $ref: "#/components/responses/InternalServerError"
-  /api/v1/senders/{userId}:
+  /api/v1/senders/{senderId}:
     parameters:
       - $ref: "#/components/headers/x-wr-platform"
       - $ref: "#/components/headers/x-wr-platform-version"
       - $ref: "#/components/headers/x-wr-request-id"
-      - name: userId
+      - name: senderId
         in: path
         required: true
         schema:
           type: string
           format: uuid
     get:
-      summary: Get existing user 
+      summary: Get sender by id
       operationId: getUser
       tags:
         - senders
@@ -171,7 +183,7 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
     put:
-      summary: Update existing user
+      summary: Update sender
       operationId: updateUser
       tags:
         - senders
@@ -190,24 +202,6 @@ paths:
           $ref: "#/components/responses/UnauthorizedError"
         409:
           $ref: "#/components/responses/ConflictError"
-        500:
-          $ref: "#/components/responses/InternalServerError"
-    delete:
-      summary: Remove existing user
-      tags:
-        - senders
-      description: |
-        Removes existing user. Should only be done for users that have no transactions.
-      operationId: deleteUser
-      security:
-        - bearerAuth: [Authorization]      
-      responses:
-        200:
-          description: Ok
-        401:
-          $ref: "#/components/responses/UnauthorizedError"
-        404:
-          $ref: "#/components/responses/NotFoundError"          
         500:
           $ref: "#/components/responses/InternalServerError"
         
@@ -287,29 +281,60 @@ components:
         lastName:
           type: string
           description: User last name [BEN_APELLIDOS]
+        displayName:
+          type: string
+          description: Display name [BEN_NOMBRES]
         gender:
           type: string
           description: Gender [BEN_SEXO]
+        dateOfBirth:
+          type: string
+          format: date
+          description: Date of birth [BEN_FECHA_NACIMIENTO]
+        countryOfNationality:
+          type: string
+          description: Country of nationality [BEN_PAIS_NAC]
+        occupation:
+          type: string
+          description: Occupation [BEN_CUPATION]
+        image:
+          type: string
+          description: Image
+        comment:
+          type: string
+          description: Comment [BEN_REMARK], I have no clue what this field is for
+        politicallyExposedPerson:
+          type: boolean
+          description: Is a politically exposed person
+        relationshipWithSender:
+          type: string
+          description: Relationship with sender [BEN_RELATIONSHIP_WITH_SENDER], not sure if that is some enum or text
     RecipientAddressDetails:
       properties:
         addressLine1:
           type: string
-          description: TODO [BEN_DIRECCION]
+          description: TODO [BEN_DIRECCION], probably there is a better name for this than addressLinex
         addressLine2:
           type: string
-          description: TODO [BEN_DIRECCION_2]
+          description: TODO [BEN_DIRECCION_2], probably there is a better name for this than addressLinex
         addresLine3:
           type: string
-          description: TODO [BEN_SUBURB]
+          description: TODO [BEN_SUBURB], probably there is a better name for this than addressLinex
+        country:
+          type: string
+          description: Recipient Country [BEN_PAIS_ID, BEN_PAIS] 
+        countryDialCode:
+          type: string
+          description: TODO [???] There is no separate dial code. It is derived from country! So this should be most likely only in GET.
         city:
           type: string
-          description: City [BEN_CIUDAD]
+          description: City [BEN_CIUDAD], UI shows City/Town
         postalCode:
           type: string
           description: Zip Code [BEN_ZIP]
         state:
           type: string
-          description: TODO [BEN_REGION]
+          description: TODO [BEN_REGION], State/Region not sure if that is the same here
     RecipientContactDetails:
       properties:
         email:
@@ -367,6 +392,11 @@ components:
       properties:
         recipientId:
           type: string
+        isActive:
+          type: string
+          description: Is active [BEN_ACTIVO], I think this field set to false means recipient is "deleted"
+        sendingReasonCode:
+          $ref: "#/components/schemas/SendingResonSchema"
         personalDetails:
           $ref: "#/components/schemas/RecipientPersonalDetails"
         identificationDetails:
@@ -381,6 +411,11 @@ components:
           $ref: "#/components/schemas/RecipientMobileAccountDetails"
     RecipientPost:
       properties:
+        isActive:
+          type: string
+          description: Is active [BEN_ACTIVO], I think this field set to false means recipient is "deleted"
+        sendingReasonCode:
+          $ref: "#/components/schemas/SendingResonSchema"
         personalDetails:
           $ref: "#/components/schemas/RecipientPersonalDetails"
         identificationDetails:
@@ -535,3 +570,12 @@ components:
           $ref: "#/components/schemas/SenderContactDetails"
         documentDetails:
           $ref: "#/components/schemas/SenderDocumentDetails"
+    SendingResonSchema:
+      type: string
+      description: >
+        Sending reason code [BEN_SENDING_REASON_CODE]
+          * `FFS` : Family or friend support
+          * `PGS` : Purchase of services
+          * `PP` : Property payment
+          * `SFS` : Sending funds to self
+      enum: [FFS, PGS, PP, SFS]      
