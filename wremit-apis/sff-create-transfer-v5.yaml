@@ -71,7 +71,7 @@ paths:
             Transfer creation can finish with two results: **Created** or **Failed**\
             Each one has it's corresponding schema.
           content:
-            application/json:
+            application/vnd.transfers.submit-status.v5+json:
               schema:
                 oneOf:
                   - $ref: "#/components/schemas/TransferCreationSuccessSchema"
