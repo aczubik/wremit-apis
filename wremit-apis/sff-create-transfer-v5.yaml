@@ -12,6 +12,12 @@ paths:
   /api/transfer-creation/{transferCreationId}/status:
     get:
       summary: Query transfer creation status
+      description: |
+        This endpoint provides information about the status of transfer creation process started with `POST /api/transfers`.
+
+        It will return:
+          * `202 Accepted` - until transfer creation is finished
+          * `200 Ok` - with information about transfer creation result
       operationId: getTransferCreationStatus
       tags:
         - transfers      
@@ -51,6 +57,7 @@ paths:
             type: string
         - name: transferCreationId
           in: path
+          required: true
           description: |
             Id of a transfer creation process started with POST /api/transfers call.\
             This value is returned as part of *Location* header returned from POST /api/transfers call.            
@@ -59,7 +66,10 @@ paths:
             format: uuid
       responses:
         200:
-          description: Transfer creation has finished
+          description: |
+            Transfer creation has finished\
+            Transfer creation can finish with two results: **Created** or **Failed**\
+            Each one has it's corresponding schema.
           content:
             application/json:
               schema:
@@ -76,6 +86,10 @@ paths:
     post:
       summary: Create new transfer [async]
       operationId: createTransfer
+      description: |
+        Initializes asynchronous process of creating transfer.\
+        Status of this process can be queried using and endpoint returned in `Location` header.\
+        Suggested delay between calls to status endpoint is provided in `Retry-After` header.
       tags:
         - transfers
       security:
@@ -239,9 +253,6 @@ components:
             required:
               - message
             properties:
-              id:
-                description: internal request id
-                type: string
               message:
                 description: Error message. To be used in UI
                 type: string
@@ -280,17 +291,14 @@ components:
       required:
         - message
       properties:
-        id:
-          description: internal request id
-          type: string
         message:
-          description: Error message. To be used in UI
+          description: Error message. To be used in UI.
           type: string
         traceId:
-          description: OpenTracing traceId
+          description: OpenTracing traceId.
           type: string  
         causeId:
-          description: Id of an error cause. All causeId descriptions are available in our wiki
+          description: Id of an error cause. All causeId descriptions are available in our wiki.
           type: string      
     CommonTrackerErrorSchema:
       allOf:
@@ -299,6 +307,7 @@ components:
           properties:
             errors:
               type: array
+              description: Errors returned in case of compliance-check failure. It contains a list of failed compliance validations.
               items:
                 required:
                   - code
@@ -312,73 +321,48 @@ components:
       description: In case of success
       required:
         - status
-        - response
+        - result
       properties:
         status:
           type: string
           description: Transfer creation process status
           enum: [Failed]
-        response:
-          type: object
-          required:
-            - httpStatus
-            - body
-          properties:
-            httpStatus:
-              type: string
-              enum: [401,417,422,500]
-              description: >
-                Potential error codes:
-                  * `401 Unauthorized`
-                  * `417 Expectation Failed` - (compliance check rejection)
-                  * `422 Unprocessable Entity` - (pricing rejection, coupone code rejection)
-                  * `500 Internar Server Error`
-            body:
-              $ref: "#/components/schemas/CommonTrackerErrorSchema"
+        result:
+            $ref: "#/components/schemas/CommonTrackerErrorSchema"
     TransferCreationSuccessSchema:
       description: In case of failure
       required:
         - status
-        - response
+        - result
       properties:
         status:
           type: string
           description: Transfer creation process status
           enum: [Created]
-        response:
+        result:
           type: object
           required:
-            - httpStatus
-            - body
+            - transferUUID
+            - paymentUrl
+            - startedTransactionId
+            - paymentMethodImplementationId
+            - paymentSessionId
           properties:
-            httpStatus:
+            transferUUID:
               type: string
-              enum: [201]
-              description: 201 Created
-            body:
-              type: object
-              required:
-                - transferUUID
-                - paymentUrl
-                - startedTransactionId
-                - paymentMethodImplementationId
-                - paymentSessionId
-              properties:
-                transferUUID:
-                  type: string
-                  description: Transfer UUID
-                paymentUrl:
-                  type: string
-                  description: Payment URL
-                startedTransactionId:
-                  type: string
-                  description: Started transaction id
-                paymentMethodImplementationId:
-                  type: string
-                  description: Payment method implementation id
-                paymentSessionId:
-                  type: string
-                  description: Payment session id
+              description: Transfer UUID
+            paymentUrl:
+              type: string
+              description: Payment URL
+            startedTransactionId:
+              type: string
+              description: Started transaction id
+            paymentMethodImplementationId:
+              type: string
+              description: Payment method implementation id
+            paymentSessionId:
+              type: string
+              description: Payment session id
     wr-platform-schema:
       type: string
       enum: [ANDROID, IOS, WEB, PAR]
