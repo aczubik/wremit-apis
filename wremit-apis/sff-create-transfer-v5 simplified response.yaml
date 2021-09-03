@@ -1,0 +1,381 @@
+openapi: "3.0.3"
+info: 
+  version: 5.0.0
+  title: CreateTransfer version 5
+  description: CreateTransfer version 5
+  license:
+    name: WorldRemit
+    url: https://wolrdremit.com/licence
+servers:
+  - url: https://worldremit.com/api/transfers
+paths:
+  /api/transfer-creation/{transferCreationId}/status:
+    get:
+      summary: Query transfer creation status
+      description: |
+        This endpoint provides information about the status of transfer creation process started with `POST /api/transfers`.
+
+        It will return:
+          * `202 Accepted` - until transfer creation is finished
+          * `200 Ok` - with information about transfer creation result
+      operationId: getTransferCreationStatus
+      tags:
+        - transfers      
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+            format: bearer
+        - name: Accept
+          in: header
+          required: true
+          schema:
+            type: string
+            enum:
+              - application/vnd.transfers.submit-status.v5+json
+        - name: X-WR-PLATFORM
+          in: header
+          required: true
+          schema:
+            $ref: "#/components/schemas/wr-platform-schema"
+        - name: X-WR-PlatformVersion
+          in: header
+          required: false
+          description: |
+            Platform version in format : TODO describe format\
+            **User header name case as provided.**
+          schema:
+            type: string
+        - name: X-WR-RequestId
+          in: header
+          required: true
+          description: | 
+            **User header name case as provided.**
+          schema:
+            type: string
+        - name: transferCreationId
+          in: path
+          required: true
+          description: |
+            Id of a transfer creation process started with POST /api/transfers call.\
+            This value is returned as part of *Location* header returned from POST /api/transfers call.            
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: |
+            Transfer creation has finished\
+            Transfer creation can finish with two results: **Created** or **Failed**\
+            Each one has it's corresponding schema.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/TransferCreationSuccessSchema"
+                  - $ref: "#/components/schemas/TransferCreationFailureSchema"
+        202:
+          $ref: "#/components/responses/202Response"
+        404:
+          $ref: "#/components/responses/404ErrorResponse"
+        500:
+          $ref: "#/components/responses/500ErrorResponse"
+  /api/transfers:
+    post:
+      summary: Create new transfer [async]
+      operationId: createTransfer
+      description: |
+        Initializes asynchronous process of creating transfer.\
+        Status of this process can be queried using and endpoint returned in `Location` header.\
+        Suggested delay between calls to status endpoint is provided in `Retry-After` header.
+      tags:
+        - transfers
+      security:
+        - bearerAuth: [Authorization]
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+            format: bearer
+        - name: Content-Type
+          in: header
+          required: true
+          schema:
+            type: string
+            enum:
+              - application/vnd.transfers.submit.v5+json
+        - name: X-WR-PLATFORM
+          in: header
+          required: true
+          schema:
+            $ref: "#/components/schemas/wr-platform-schema"
+        - name: X-WR-PlatformVersion
+          in: header
+          required: false
+          description: |
+            Platform version in format : TODO describe format\
+            **User header name case as provided.**
+          schema:
+            type: string
+        - name: X-WR-RequestId
+          in: header
+          required: true
+          description: | 
+            **User header name case as provided.**
+          schema:
+            type: string
+        - name: X-WR-DeviceID
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/vnd.transfers.submit.v5+json:
+            schema:
+              type: object
+              required:
+                - pricingId
+                - payInMethodCode
+                - payOutMethodCode
+                - sendCountry
+                - receiveCountry
+                - recipientId
+                - successUrl
+                - failureUrl
+                - cancelUrl
+              properties:
+                pricingId:
+                  type: string
+                  format: uuid
+                  description: "Id of the pricing calculation"
+                payInMethodCode:
+                  type: string
+                  description: A payment method selected by the user
+                payOutMethodCode:
+                  type: string
+                  description: Code of the payout method
+                sendCountry:
+                  type: string
+                  description: Country the money is sent from
+                receiveCountry:
+                  type: string
+                  description: Country the money is sent to
+                recipientId:
+                  type: integer
+                  description: Recipient legacy id
+                couponCode:
+                  type: string
+                  description: Promotional coupon code
+                successUrl:
+                  type: string
+                  description: URL the front should be redirected to when payment is successfully finished
+                failureUrl:
+                  type: string
+                  description: URL the front should be redirected to when payment fails
+                cancelUrl:
+                  type: string
+                  description: URL the front should be redirected to when payment is cancelled
+            example:
+              pricingId:
+                value: 7a8d0ff4-e23c-4453-b45b-4610e19592f6
+              payInMethodCode:
+                value: debit-credit-card
+              payOutMethodCode:
+                value: CSH
+              sendCountry:
+                value: PL
+              receiveCountry:
+                value: GH
+              recipientId:
+                value: 984069
+              couponCode:
+                value: 
+              successUrl:
+                value: "https://wr.com/success"
+              failureUrl:
+                value: "https://wr.com/fail"
+              cancelUrl:
+                value: "https://wr.com/cancel"
+      responses:
+        202:
+          $ref: "#/components/responses/202Response"
+        400:
+          $ref: "#/components/responses/400ErrorResponse"
+        401:
+          $ref: "#/components/responses/401ErrorResponse"
+        422:
+          $ref: "#/components/responses/422ErrorResponse"
+        500:
+          $ref: "#/components/responses/500ErrorResponse"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token acquired while authenticating user
+      
+  responses:
+    202Response:  
+      description: Transfer is being created
+      headers:
+        Location:
+          schema:
+            type: string
+            description: TODO
+            enum: ["https://submission-flow-facade.wremittst.com/api/transfer-creation/{transferCreationId}/status"]
+        Retry-After:
+          schema:
+            type: integer
+            description: delay between next request to tracker endpoint      
+    400ErrorResponse:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CommonErrorSchema"
+    401ErrorResponse:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CommonErrorSchema"
+    404ErrorResponse:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            required:
+              - message
+            properties:
+              message:
+                description: Error message. To be used in UI
+                type: string
+              traceId:
+                description: OpenTracing traceId
+                type: string  
+              causeId:
+                description: Id of an error cause. All causeId descriptions are available in our wiki
+                type: string 
+    417ErrorResponse:
+      description: Expectation Failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CommonErrorSchema"
+    422ErrorResponse:
+      description: Unprocessable Entity
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CommonErrorSchema"
+    500ErrorResponse:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CommonErrorSchema"
+    CommorErrorResponse:
+      description: Common Error Response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CommonErrorSchema"
+  schemas:
+    CommonErrorSchema:
+      required:
+        - message
+      properties:
+        message:
+          description: Error message. To be used in UI.
+          type: string
+        traceId:
+          description: OpenTracing traceId.
+          type: string  
+        causeId:
+          description: Id of an error cause. All causeId descriptions are available in our wiki.
+          type: string      
+    CommonTrackerErrorSchema:
+      allOf:
+        - $ref: "#/components/schemas/CommonErrorSchema"
+        - type: object
+          properties:
+            errors:
+              type: array
+              description: Errors returned in case of compliance-check failure. It contains a list of failed compliance validations.
+              items:
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+    TransferCreationFailureSchema:
+      description: In case of success
+      required:
+        - status
+        - result
+      properties:
+        status:
+          type: string
+          description: Transfer creation process status
+          enum: [Failed]
+        result:
+            $ref: "#/components/schemas/CommonTrackerErrorSchema"
+    TransferCreationSuccessSchema:
+      description: In case of failure
+      required:
+        - status
+        - result
+      properties:
+        status:
+          type: string
+          description: Transfer creation process status
+          enum: [Created]
+        result:
+          type: object
+          required:
+            - transferUUID
+            - paymentUrl
+            - startedTransactionId
+            - paymentMethodImplementationId
+            - paymentSessionId
+          properties:
+            transferUUID:
+              type: string
+              description: Transfer UUID
+            paymentUrl:
+              type: string
+              description: Payment URL
+            startedTransactionId:
+              type: string
+              description: Started transaction id
+            paymentMethodImplementationId:
+              type: string
+              description: Payment method implementation id
+            paymentSessionId:
+              type: string
+              description: Payment session id
+    wr-platform-schema:
+      type: string
+      enum: [ANDROID, IOS, WEB, PAR]
+      description: >
+        Platform types:
+          * `ANDROID` - Android
+          * `IOS` - iOS
+          * `WEB` - Web 
+          * `PAR` - Partner API
+
+        **User header name case as provided.**
+        
+
+
+
