@@ -140,7 +140,7 @@ paths:
               type: object
               required:
                 - pricingId
-                - payInMethodCode
+                - payInMethodId
                 - payOutMethodCode
                 - sendCountry
                 - receiveCountry
@@ -153,7 +153,7 @@ paths:
                   type: string
                   format: uuid
                   description: "Id of the pricing calculation"
-                payInMethodCode:
+                payInMethodId:
                   type: string
                   description: A payment method selected by the user
                 payOutMethodCode:
@@ -183,7 +183,7 @@ paths:
             example:
               pricingId:
                 value: 7a8d0ff4-e23c-4453-b45b-4610e19592f6
-              payInMethodCode:
+              payInMethodId:
                 value: debit-credit-card
               payOutMethodCode:
                 value: CSH
@@ -223,16 +223,20 @@ components:
   responses:
     202Response:  
       description: Transfer is being created
-      headers:
-        Location:
+      content:
+        application/json:
           schema:
-            type: string
-            description: TODO
-            enum: ["https://submission-flow-facade.wremittst.com/api/transfer-creation/{transferCreationId}/status"]
-        Retry-After:
-          schema:
-            type: integer
-            description: delay between next request to tracker endpoint      
+            required:
+              - Location
+              - Retry-After
+            properties:
+              Location:
+                type: string
+                description: TODO
+                enum: ["https://submission-flow-facade.wremittst.com/api/transfer-creation/{transferCreationId}/status"]
+              Retry-After:
+                type: integer
+                description: delay between next request to tracker endpoint      
     400ErrorResponse:
       description: Bad Request
       content:
