@@ -330,7 +330,7 @@ components:
         status:
           type: string
           description: Transfer creation process status
-          enum: [Failed]
+          enum: [FAILED]
         result:
             $ref: "#/components/schemas/CommonTrackerErrorSchema"
     TransferCreationSuccessSchema:
@@ -342,7 +342,7 @@ components:
         status:
           type: string
           description: Transfer creation process status
-          enum: [Created]
+          enum: [CREATED]
         result:
           type: object
           required:
